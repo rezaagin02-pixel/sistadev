@@ -223,6 +223,39 @@ class Profile_model extends CI_Model
         ];
     }
 
+    public function get_lampiran_by_user_id(int $user_id): ?array
+    {
+        $latest_cv = $this->get_latest_cv($user_id);
+        if (empty($latest_cv)) { return null; }
+        $cv_id = (int)($latest_cv['id'] ?? 0);
+
+        // Ambil SEMUA baris lampiran untuk cv_id ini
+        $all_lampiran_rows = $this->db
+            ->get_where('lampiran_cv', ['cv_id' => $cv_id])
+            ->result_array();
+        
+        if (empty($all_lampiran_rows)) {
+            return null;
+        }
+
+        $final_lampiran = [];
+        
+        foreach ($all_lampiran_rows as $row) {
+            foreach ($row as $key => $value) {
+                // PERBAIKAN DI SINI:
+                // Hanya update $final_lampiran jika $value dari DB TIDAK NULL dan TIDAK KOSONG.
+                // Ini mencegah baris baru yang kosong menimpa data file yang sudah ada di baris sebelumnya.
+                if ($value !== null && $value !== '') {
+                    $final_lampiran[$key] = $value;
+                }
+                
+                // Catatan: Jika $final_lampiran[$key] belum ada, otomatis terisi.
+                // Jika sudah ada, akan ditimpa HANYA jika $value baru ada isinya.
+            }
+        }
+        
+        return $final_lampiran;
+    }
 
 
 }

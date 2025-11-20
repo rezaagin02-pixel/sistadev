@@ -1229,7 +1229,8 @@ class User extends MY_Controller
         }
 
         $field_name = $this->input->post('field_name', true);
-        $file_lama  = $this->input->post('file_lama', true); // Path penuh lama
+        $file_lama = $this->input->post('file_lama', true); // Path penuh lama
+        $is_visible = (int)$this->input->post('is_visible'); // Menerima 0 atau 1
 
         $allowed_fields = ['ktp_file', 'npwp_file', 'bukti_pajak', 'foto', 'lainnya'];
         if (!$field_name || !in_array($field_name, $allowed_fields)) {
@@ -1237,37 +1238,35 @@ class User extends MY_Controller
             redirect('user/profile#lampiran');
             return;
         }
+        
+        $visible_field_name = 'is_visible_' . $field_name;
 
-        // --- Logika Upload File (Disinkronkan dengan path CV) ---
+        // --- Logika Upload File ---
         $user_id = $this->session->userdata('id');
         $user_folder = 'user_' . $user_id;
 
-        // Tentukan ABSOLUTE path untuk upload
-        $upload_path = FCPATH . 'uploads/cv/' . $user_folder . '/'; // <--- Path Konsisten
-        // Tentukan RELATIVE path untuk disimpan di DB
+        $upload_path = FCPATH . 'uploads/cv/' . $user_folder . '/';
         $path_prefix = 'uploads/cv/' . $user_folder . '/'; 
 
         if (!is_dir($upload_path)) {
             @mkdir($upload_path, 0777, TRUE);
         }
 
-        $config['upload_path']   = $upload_path;
+        $config['upload_path'] = $upload_path;
         $config['allowed_types'] = 'pdf|jpg|jpeg|png';
-        $config['max_size']      = 5120; // 5MB
-        $config['encrypt_name']  = TRUE;
+        $config['max_size'] = 5120; // 5MB
+        $config['encrypt_name'] = TRUE;
 
         $this->load->library('upload', $config);
-        $this->upload->initialize($config); // Re-initialize
+        $this->upload->initialize($config);
 
         $new_file_name = null;
 
         if (!empty($_FILES['file_lampiran']['name'])) {
             if ($this->upload->do_upload('file_lampiran')) {
-                $upload_data   = $this->upload->data();
-                // SIMPAN PATH RELATIF PENUH KE DB
+                $upload_data = $this->upload->data();
                 $new_file_name = $path_prefix . $upload_data['file_name']; 
 
-                // Hapus file lama jika ada (menggunakan path penuh yang disimpan di DB)
                 if (!empty($file_lama) && file_exists(FCPATH . $file_lama)) {
                     @unlink(FCPATH . $file_lama);
                 }
@@ -1278,14 +1277,21 @@ class User extends MY_Controller
                 return;
             }
         } else {
-            // Tidak ada file baru, pertahankan file lama
             $new_file_name = $file_lama;
+            if (empty($new_file_name)) {
+                $this->session->set_flashdata('error', 'Pilih file yang akan di-upload.');
+                redirect('user/profile#lampiran');
+                return;
+            }
         }
 
         // --- Update Database ---
         $lampiran_row = $this->db->get_where('lampiran_cv', ['cv_id' => $cv_id])->row();
 
-        $payload = [$field_name => $new_file_name];
+        $payload = [
+            $field_name => $new_file_name,
+            $visible_field_name => $is_visible // NILAI 0 atau 1 DITERAPKAN DI SINI
+        ];
 
         if ($lampiran_row) {
             $this->db->where('cv_id', $cv_id)->update('lampiran_cv', $payload);
@@ -1609,52 +1615,60 @@ class User extends MY_Controller
             return;
         }
 
-        $session_user_id = (int)$this->session->userdata('id'); // pastikan 'id' diset di session
+        $session_user_id = (int)$this->session->userdata('id');
         if (!$session_user_id) {
             redirect('auth');
             return;
         }
 
         $this->load->model('Profile_model');
-
+        
         // Ambil data user
-        $user = $this->User_model->getById($id);
+        // Asumsi: Model User_model sudah di-load/autoload
+        $user = $this->User_model->getById($id); 
         if (!$user) {
             show_error('User tidak ditemukan', 404);
             return;
         }
-
+        
         // =========================================================
-        // BLOK BARU ADA DI SINI
+        // BLOK BARU & PERBAIKAN
         // =========================================================
         
         $is_owner = ($session_user_id === $id);
 
-        // === TAMBAHAN 1: Ambil Visibility Map ===
-        // Ambil data visibilitas untuk user yang sedang DILIHAT ($id)
+        // 1. Ambil Visibility Map (Visibilitas per Bagian Utama CV)
         $visibility_rows = $this->db
-            ->get_where('user_visibility', ['user_id' => $id]) // <-- Pakai $id
+            ->get_where('user_visibility', ['user_id' => $id])
             ->result_array();
 
         $visibility_map = [];
         foreach ($visibility_rows as $row) {
             $visibility_map[$row['section']] = (int)$row['is_visible'];
         }
-        // === AKHIR TAMBAHAN 1 ===
 
-        // Ambil profil lengkap dengan filter is_hidden
+        // 2. Ambil Profil Lengkap (sections)
         $profile = $this->Profile_model->get_profile_for_viewer($id, $session_user_id);
+        
+        // 3. Ambil Data Lampiran (Satu Baris, Termasuk Status Visibilitas Per Item)
+        // Memanggil fungsi baru di Profile_model
+        $lampiran = $this->Profile_model->get_lampiran_by_user_id($id); 
+        if (!$lampiran) {
+            $lampiran = []; // Pastikan ini array kosong jika tidak ada data
+        }
 
+        // 4. Definisikan Array Data Sekali Saja
         $data = [
-            'title'     => 'Profil',
-            'user'      => $user,
-            'profile'   => $profile,
-            'is_owner'  => $is_owner,
-            'visibility_map' => $visibility_map, // <-- TAMBAHAN 2: Kirim ke view
+            'title'          => 'Profil',
+            'user'           => $user,
+            'profile'        => $profile,
+            'is_owner'       => $is_owner,
+            'visibility_map' => $visibility_map,
+            'lampiran'       => $lampiran, // <-- DATA LAMPIRAN YANG AKAN DIPAKAI DI VIEW
         ];
         
         // =========================================================
-        // AKHIR BLOK BARU
+        // AKHIR BLOK BARU & PERBAIKAN
         // =========================================================
 
         $this->load->view('templates/header', $data);

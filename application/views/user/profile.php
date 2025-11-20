@@ -686,16 +686,11 @@ $is_bahasa_visible = (int)($visibility_map[$key_bahasa] ?? 1);
 <div class="card card-lite mb-3">
   <div class="card-header bg-white d-flex justify-content-between align-items-center">
     <div><i class="bi bi-translate me-2"></i>Keahlian & Bahasa</div>
+    
     <div class="d-flex align-items-center">
       <button class="btn btn-sm btn-outline-secondary toggle-section me-2" 
               data-target="#bahasa-content"
-              data-storage-key="<?= $key_bahasa ?>"
-              data-visible-state="<?= $is_bahasa_visible ?>">
-        <?php if ($is_bahasa_visible): ?>
-          <i class="bi bi-eye-slash me-1"></i> Sembunyikan
-        <?php else: ?>
-          <i class="bi bi-eye me-1"></i> Tampilkan
-        <?php endif; ?>
+              data-storage-key="bahasa"> <i class="bi bi-eye-slash me-1"></i> Sembunyikan
       </button>
       <a href="#" class="link-muted small" data-bs-toggle="modal" data-bs-target="#modalBahasa" data-mode="add">
         <i class="bi bi-plus-circle me-1"></i>Tambah
@@ -703,39 +698,39 @@ $is_bahasa_visible = (int)($visibility_map[$key_bahasa] ?? 1);
     </div>
   </div>
 
-  <div id="bahasa-content" class="profile-section card-body <?= !$is_bahasa_visible ? 'd-none' : '' ?>">
-    <?php if (!empty($bahasa_list)): ?>
-      <div class="list-group list-group-flush">
-        <?php foreach ($bahasa_list as $b): ?>
-          <div class="list-group-item d-flex justify-content-between align-items-center">
-            <div class="item-content"> 
-              <div class="fw-semibold"><?= h($b['bahasa']) ?></div>
-              <div class="small text-muted">S <?= h($b['speaking']) ?> / R <?= h($b['reading']) ?> / W <?= h($b['writing']) ?></div>
-            </div>
-            <div class="btn-actions">
-              <button type="button" class="btn-action edit" data-bs-toggle="modal" data-bs-target="#modalBahasa"
-                      data-mode="edit" data-id="<?= (int)$b['id'] ?>"
-                      data-bahasa="<?= h($b['bahasa'] ?? '') ?>"
-                      data-speaking="<?= h($b['speaking'] ?? '') ?>"
-                      data-reading="<?= h($b['reading'] ?? '') ?>"
-                      data-writing="<?= h($b['writing'] ?? '') ?>"
-                      data-is_visible="<?= (int)($b['is_visible'] ?? 1) ?>">
-                  <i class="bi bi-pencil"></i>
-              </button>
-              <form class="m-0" method="post" action="<?= base_url('user/lang_delete/'.(int)$b['id']) ?>"
-                    onsubmit="return confirm('Hapus bahasa ini?');">
-                <?php if (function_exists('csrf_field')) echo csrf_field(); ?>
-                <button type="submit" class="btn-action danger" title="Hapus">
-                    <i class="bi bi-trash"></i>
-                </button>
-              </form>
-            </div>
+  <div id="bahasa-content" class="profile-section card-body">
+  <?php if (!empty($bahasa_list)): ?>
+    <div class="list-group list-group-flush">
+      <?php foreach ($bahasa_list as $b): ?>
+        <div class="list-group-item d-flex justify-content-between align-items-center">
+          <div class="item-content"> 
+            <div class="fw-semibold"><?= h($b['bahasa']) ?></div>
+            <div class="small text-muted">S <?= h($b['speaking']) ?> / R <?= h($b['reading']) ?> / W <?= h($b['writing']) ?></div>
           </div>
-        <?php endforeach; ?>
-      </div>
-    <?php else: ?>
-      <div class="muted">Belum ada data bahasa.</div>
-    <?php endif; ?>
+          
+          <div class="btn-actions">
+            <button type="button" class="btn-action edit" data-bs-toggle="modal" data-bs-target="#modalBahasa"
+                    data-mode="edit" data-id="<?= (int)$b['id'] ?>"
+                    data-bahasa="<?= h($b['bahasa'] ?? '') ?>"
+                    data-speaking="<?= h($b['speaking'] ?? '') ?>"
+                    data-reading="<?= h($b['reading'] ?? '') ?>"
+                    data-writing="<?= h($b['writing'] ?? '') ?>"
+                    data-is_visible="<?= (int)($b['is_visible'] ?? 1) ?>"> <i class="bi bi-pencil"></i>
+            </button>
+            <form class="m-0" method="post" action="<?= base_url('user/lang_delete/'.(int)$b['id']) ?>"
+                onsubmit="return confirm('Hapus bahasa ini?');">
+            <?php if (function_exists('csrf_field')) echo csrf_field(); ?>
+            <button type="submit" class="btn-action danger" title="Hapus">
+                <i class="bi bi-trash"></i>
+            </button>
+            </form>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  <?php else: ?>
+    <div class="muted">Belum ada data bahasa.</div>
+  <?php endif; ?>
   </div>
 </div>
 
@@ -744,92 +739,87 @@ $is_bahasa_visible = (int)($visibility_map[$key_bahasa] ?? 1);
 <!-- BAGIAN LAMPIRAN CV (BARU) -->
 <!-- ============================== -->
 <?php
-// Key ini HARUS SAMA PERSIS dengan isi kolom 'section' di DB Anda
 $key_lampiran = 'lampiran_cv';
-$is_lampiran_visible = (int)($visibility_map[$key_lampiran] ?? 1);
+$is_lampiran_visible = (int)($visibility_map[$key_lampiran] ?? 1); 
 
-// Buat array helper untuk label
 $lampiran_items = [
-    'ktp_file'    => 'KTP/Passport/ID',
-    'npwp_file'   => 'NPWP',
-    'bukti_pajak' => 'Bukti Pajak',
-    'foto'        => 'Foto Formal',
-    'lainnya'     => 'Lampiran Lainnya'
+    'ktp_file'      => 'KTP/Passport/ID',
+    'npwp_file'     => 'NPWP',
+    'bukti_pajak'   => 'Bukti Pajak',
+    'foto'          => 'Foto Formal',
+    'lainnya'       => 'Lampiran Lainnya'
 ];
-
-// Ambil data file dari $lampiran (yang sudah di-load di controller)
-// $lampiran adalah row_array(), BUKAN result_array()
+// Di profile.php (pemilik), $lampiran diambil langsung dari controller
 $lampiran_data = $lampiran ?? []; 
 ?>
 
-<!-- Diubah dari mb-3 menjadi mb-4 untuk menambah spasi di bawahnya -->
-
 <div class="card card-lite mb-3" id="lampiran">
-  <div class="card-header bg-white d-flex justify-content-between align-items-center">
-    <div><i class="bi bi-paperclip me-2"></i>Lampiran CV</div>
-    <div class="d-flex align-items-center">
-      <button class="btn btn-sm btn-outline-secondary toggle-section me-2" 
-              data-target="#lampiran-content"
-              data-storage-key="<?= $key_lampiran ?>"
-              data-visible-state="<?= $is_lampiran_visible ?>">
-        <?php if ($is_lampiran_visible): ?>
-          <i class="bi bi-eye-slash me-1"></i> Sembunyikan
-        <?php else: ?>
-          <i class="bi bi-eye me-1"></i> Tampilkan
-        <?php endif; ?>
-      </button>
-    </div>
-  </div>
-  <div id="lampiran-content" class="profile-section card-body <?= !$is_lampiran_visible ? 'd-none' : '' ?>">
-    <div class="list-group list-group-flush">
-      <?php foreach ($lampiran_items as $field_name => $label): ?>
-        <?php
-          $file_value = $lampiran_data[$field_name] ?? null;
-          $file_exists = !empty($file_value);
-          // PASTIKAN PATH INI BENAR: 'uploads/cv/'
-          $file_url = $file_exists ? base_url('' . $file_value) : '#'; 
-        ?>
-        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-          <div class="item-content"> 
-            <div class="fw-semibold"><?= h($label) ?></div>
-            <?php if ($file_exists): ?>
-              <div class="small text-muted">
-                <a href="<?= h($file_url) ?>" target="_blank" class="link-primary" style="word-break: break-all;">
-                  <i class="bi bi-file-earmark-arrow-down me-1"></i><?= h($file_value) ?>
-                </a>
-              </div>
-            <?php else: ?>
-              <div class="small text-muted">Belum di-upload</div>
-            <?php endif; ?>
-          </div>
-          
-          
-          <div class="btn-actions">
-            <!-- Tombol Ganti/Upload -->
-            <button type="button" class="btn-action edit" data-bs-toggle="modal" data-bs-target="#modalLampiranItem"
-                    title="<?= $file_exists ? 'Ganti' : 'Upload' ?>"
-                    data-field_name="<?= h($field_name) ?>"
-                    data-label="<?= h($label) ?>"
-                    data-file_value="<?= h($file_value ?? '') ?>">
-              <i class="bi bi-upload"></i>
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div><i class="bi bi-paperclip me-2"></i>Lampiran CV</div>
+        <div class="d-flex align-items-center">
+            <button class="btn btn-sm btn-outline-secondary toggle-section me-2" 
+                    data-target="#lampiran-content"
+                    data-storage-key="<?= $key_lampiran ?>"
+                    data-visible-state="<?= $is_lampiran_visible ?>">
+                <?php if ($is_lampiran_visible): ?>
+                    <i class="bi bi-eye-slash me-1"></i> Sembunyikan
+                <?php else: ?>
+                    <i class="bi bi-eye me-1"></i> Tampilkan
+                <?php endif; ?>
             </button>
-            
-            <!-- Tombol Hapus (hanya muncul jika file ada) -->
-            <?php if ($file_exists): ?>
-              <form class="m-0" method="post" action="<?= base_url('user/lampiran_item_delete/' . h($field_name)) ?>"
-                    onsubmit="return confirm('Hapus file <?= h($label) ?> ini?');">
-                <?php if (function_exists('csrf_field')) echo csrf_field(); ?>
-                <button type="submit" class="btn-action danger" title="Hapus">
-                    <i class="bi bi-trash"></i>
-                </button>
-              </form>
-            <?php endif; ?>
-          </div>
         </div>
-      <?php endforeach; ?>
     </div>
     
-  </div>
+    <div id="lampiran-content" class="profile-section card-body <?= (!$is_lampiran_visible) ? 'd-none' : '' ?>"> 
+        <div class="list-group list-group-flush">
+            <?php foreach ($lampiran_items as $field_name => $label): ?>
+                <?php
+                  $file_value = $lampiran_data[$field_name] ?? null;
+                  $file_exists = !empty($file_value);
+                  $file_url = $file_exists ? base_url('' . $file_value) : '#'; 
+
+                  $visible_key = 'is_visible_' . $field_name;
+                  $is_visible = (int)($lampiran_data[$visible_key] ?? 1); 
+                ?>
+
+                <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <div class="item-content">
+                        <div class="fw-semibold"><?= h($label) ?></div>
+                        <?php if ($file_exists): ?>
+                            <div class="small text-muted">
+                                <a href="<?= h($file_url) ?>" target="_blank" class="link-primary" style="word-break: break-all;">
+                                    <i class="bi bi-file-earmark-arrow-down me-1"></i>Lihat File
+                                </a>
+                            </div>
+                        <?php else: ?>
+                            <div class="small text-muted">Belum di-upload</div>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <div class="btn-actions">
+                        <button type="button" class="btn-action edit" data-bs-toggle="modal" data-bs-target="#modalLampiranItem"
+                            title="<?= $file_exists ? 'Ganti' : 'Upload' ?>"
+                            data-field_name="<?= h($field_name) ?>"
+                            data-label="<?= h($label) ?>"
+                            data-file_value="<?= h($file_value ?? '') ?>"
+                            data-is_visible="<?= $is_visible ?>">
+                            <i class="bi bi-upload"></i>
+                        </button>
+
+                        <?php if ($file_exists): ?>
+                            <form class="m-0" method="post" action="<?= base_url('user/lampiran_item_delete/' . h($field_name)) ?>"
+                                onsubmit="return confirm('Hapus file <?= h($label) ?> ini?');">
+                                <?php if (function_exists('csrf_field')) echo csrf_field(); ?>
+                                <button type="submit" class="btn-action danger" title="Hapus">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
 </div>
 
 
@@ -1836,61 +1826,32 @@ modal?.addEventListener('hidden.bs.modal', () => {
 
 <!-- BAHASA SETUP -->
 <div class="modal fade" id="modalBahasa" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <form class="modal-content" method="post" action="<?= base_url('user/lang_save') ?>">
       <?php if (function_exists('csrf_field')) echo csrf_field(); ?>
       <input type="hidden" name="id" id="lang_id">
-
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-translate me-2"></i>Bahasa & Kemampuan</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-
+      <div class="modal-header"><h5 class="modal-title">Bahasa & Kemampuan</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
-
-        <!-- Rincian Bahasa -->
         <div class="border rounded-3 p-3">
-          <div class="d-flex align-items-center mb-2">
-            <i class="bi bi-chat-dots me-2 text-muted"></i>
-            <span class="fw-semibold">Rincian Bahasa</span>
-          </div>
           <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">Bahasa <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" name="bahasa" id="lang_bahasa" required placeholder="Contoh: Inggris">
-            </div>
-            <div class="col-md-2">
-              <label class="form-label">Speaking</label>
-              <input type="text" class="form-control" name="speaking" id="lang_speaking" placeholder="A1–C2 / Baik">
-            </div>
-            <div class="col-md-2">
-              <label class="form-label">Reading</label>
-              <input type="text" class="form-control" name="reading" id="lang_reading" placeholder="A1–C2 / Baik">
-            </div>
-            <div class="col-md-2">
-              <label class="form-label">Writing</label>
-              <input type="text" class="form-control" name="writing" id="lang_writing" placeholder="A1–C2 / Baik">
-            </div>
+            <div class="col-md-6"><label class="form-label">Bahasa</label><input type="text" class="form-control" name="bahasa" id="lang_bahasa" required></div>
+            <div class="col-md-2"><label class="form-label">Speaking</label><input type="text" class="form-control" name="speaking" id="lang_speaking"></div>
+            <div class="col-md-2"><label class="form-label">Reading</label><input type="text" class="form-control" name="reading" id="lang_reading"></div>
+            <div class="col-md-2"><label class="form-label">Writing</label><input type="text" class="form-control" name="writing" id="lang_writing"></div>
           </div>
-          <div class="form-text mt-2">Boleh pakai skala CEFR (A1–C2) atau kualitatif (Dasar/Baik/Mahir).</div>
         </div>
-
       </div>
-
       <div class="modal-footer">
-        <!-- Hide/show item-->
         <div class="me-auto form-check form-switch"> 
             <input type="hidden" name="is_visible" value="0">
-            
-            <input class="form-check-input" type="checkbox" role="switch" 
-                  id="lang_is_visible_modal" name="is_visible" value="1" checked> 
-            <label class="form-check-label small text-muted" for="lang_is_visible_modal">Tampilkan di Profil</label>
+            <input class="form-check-input" type="checkbox" role="switch" id="lang_is_visible_modal" name="is_visible" value="1" checked> 
+            <label class="form-check-label small text-muted" for="lang_is_visible_modal">Tampilkan</label>
         </div>
-        <button class="btn btn-light" type="button" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-primary" type="submit">Simpan</button>
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
       </div>
     </form>
-  </div>
+    </div>
 </div>
 
 <script>
@@ -1947,34 +1908,37 @@ modal?.addEventListener('hidden.bs.modal', () => {
 <!-- MODAL BARU: LAMPIRAN ITEM -->
 <!-- ============================== -->
 <div class="modal fade" id="modalLampiranItem" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
-    <form class="modal-content" method="post" action="<?= base_url('user/lampiran_item_save') ?>" enctype="multipart/form-data">
-      <?php if (function_exists('csrf_field')) echo csrf_field(); ?>
-      
-      <!-- Input hidden dinamis yang diisi oleh JS -->
-      <input type="hidden" name="field_name" id="lampiran_field_name">
-      <input type="hidden" name="file_lama" id="lampiran_file_lama">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <form class="modal-content" method="post" action="<?= base_url('user/lampiran_item_save') ?>" enctype="multipart/form-data">
+            <?php if (function_exists('csrf_field')) echo csrf_field(); ?>
+            <input type="hidden" name="field_name" id="lampiran_field_name">
+            <input type="hidden" name="file_lama" id="lampiran_file_lama">
 
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-upload me-2"></i>Ganti/Upload <span id="lampiran_modal_title"></span></h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-upload me-2"></i><span id="lampiran_modal_title">Upload Lampiran</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
 
-      <div class="modal-body">
-        <!-- Tampilan modal ini persis seperti screenshot Anda -->
-        <div class="border rounded-3 p-3">
-            <label class="form-label">File (pdf/jpg/png, maks 5MB)</label>
-            <input type="file" class="form-control" name="file_lampiran" id="lampiran_file_input" accept=".pdf,.jpg,.jpeg,.png" required>
-            <div class="form-text small mt-2" id="lampiran_file_info">File saat ini: (tidak ada)</div>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-light" type="button" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-primary" type="submit">Simpan</button>
-      </div>
-    </form>
-  </div>
+            <div class="modal-body">
+                <div class="border rounded-3 p-3">
+                    <div class="mb-3">
+                        <label class="form-label">File (pdf/jpg/jpeg/png, maks 5MB)</label>
+                        <input type="file" class="form-control" name="file_lampiran" id="lampiran_file_input" accept=".pdf,.jpg,.jpeg,.png">
+                        <div class="form-text mt-2" id="lampiran_file_info"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="me-auto form-check form-switch"> 
+                    <input type="hidden" name="is_visible" value="0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="lampiran_is_visible_modal" name="is_visible" value="1" checked> 
+                    <label class="form-check-label small text-muted" for="lampiran_is_visible_modal">Tampilkan di Profil</label>
+                </div>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- ============================== -->
@@ -1982,40 +1946,57 @@ modal?.addEventListener('hidden.bs.modal', () => {
 <!-- ============================== -->
 <script>
 (function(){
-  const modalEl = document.getElementById('modalLampiranItem');
-  if (!modalEl) return;
-  
-  const q = sel => modalEl.querySelector(sel);
-  const titleSpan = q('#lampiran_modal_title');
-  const fieldNameInput = q('#lampiran_field_name');
-  const fileLamaInput = q('#lampiran_file_lama');
-  const fileInfo = q('#lampiran_file_info');
-  const fileInput = q('#lampiran_file_input');
-
-  modalEl.addEventListener('show.bs.modal', (e) => {
-    const btn = e.relatedTarget;
-    if (!btn) return; // Jika tidak dipicu oleh tombol, jangan lakukan apa-apa
-    const d = btn.dataset || {};
-
-    // 1. Reset form
-    fileInput.value = '';
+    const modalEl = document.getElementById('modalLampiranItem');
+    if (!modalEl) return;
     
-    // 2. Isi data dari tombol
-    const fieldName = d.field_name || '';
-    const label = d.label || 'Lampiran';
-    const fileValue = d.file_value || '';
+    const q = sel => modalEl.querySelector(sel);
+    const titleSpan = q('#lampiran_modal_title');
+    const fileLamaInput = q('#lampiran_file_lama');
+    const fileInfo = q('#lampiran_file_info');
+    const fileInput = q('#lampiran_file_input');
+    const checkbox = q('#lampiran_is_visible_modal');
 
-    if (titleSpan) titleSpan.textContent = label;
-    if (fieldNameInput) fieldNameInput.value = fieldName;
-    if (fileLamaInput) fileLamaInput.value = fileValue;
-    
-    // 3. Tampilkan info file
-    if (fileValue) {
-      if (fileInfo) fileInfo.innerHTML = `File saat ini: <strong>${fileValue}</strong>. Upload file baru untuk menggantinya.`;
-    } else {
-      if (fileInfo) fileInfo.innerHTML = 'Belum ada file yang di-upload.';
-    }
-  });
+    modalEl.addEventListener('show.bs.modal', (e) => {
+        const btn = e.relatedTarget;
+        if (!btn) return;
+        const d = btn.dataset || {};
+
+        // 1. Reset form & data
+        fileInput.value = '';
+        
+        const fieldName = d.field_name || '';
+        const label = d.label || 'Lampiran';
+        const fileValue = d.file_value || '';
+        const isVisible = d.is_visible;
+
+        // Isi data tersembunyi
+        if (q('#lampiran_field_name')) q('#lampiran_field_name').value = fieldName;
+        fileLamaInput.value = fileValue;
+        if (titleSpan) titleSpan.textContent = label;
+        
+        // 2. Atur required dan info file
+        if (fileValue) {
+            // Jika ada file lama, input file tidak wajib diisi
+            fileInput.removeAttribute('required');
+            
+            // Buat link ke file lama
+            const fileUrl = '<?= base_url() ?>' + fileValue;
+            fileInfo.innerHTML = `File saat ini: <a href="${fileUrl}" target="_blank" class="link-primary" style="word-break: break-all;"><i class="bi bi-file-earmark-arrow-down me-1"></i>${fileValue}</a>. Upload file baru untuk menggantinya.`;
+            
+        } else {
+            // Jika tidak ada file lama, input file wajib diisi
+            fileInput.setAttribute('required', 'required');
+            fileInfo.innerHTML = 'Belum ada file yang di-upload.';
+        }
+
+        // 3. Set status visibilitas
+        if (checkbox) {
+            setTimeout(() => {
+                // Default ke 'checked' (true/1) jika file belum ada atau jika isVisible bukan '0'
+                checkbox.checked = (isVisible !== '0');
+            }, 50); 
+        }
+    });
 })();
 </script>
 

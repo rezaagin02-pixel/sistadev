@@ -64,7 +64,7 @@ $pendidikan_formal    = $profile['sections']['pendidikan_formal']    ?? [];
 $sertifikasi_profesi  = $profile['sections']['sertifikasi_profesi']  ?? [];
 $bahasa_list          = $profile['sections']['bahasa']               ?? [];
 $pendidikan_nonformal = $profile['sections']['pendidikan_nonformal'] ?? []; 
-$lampiran             = $profile['sections']['lampiran_cv']          ?? []; 
+
 
 // 3. Ambil counts (sudah dihitung oleh model berdasarkan data terfilter)
 $counts              = $profile['counts'] ?? [
@@ -109,12 +109,17 @@ if (!$is_owner) {
         $pendidikan_nonformal = [];
     }
     // Cek 'lampiran_cv'
+    
     if ( (int)($visibility_map['lampiran_cv'] ?? 1) === 0 ) {
-        $lampiran = [];
-        $lampiran_data = []; // Pastikan $lampiran_data juga kosong
+        
     }
+
+
+
+    
+
     // ▲▲▲ AKHIR DARI BLOK TAMBAHAN ▲▲▲
-}
+  }
 // === AKHIR FILTER ===
 
 // ===== Helpers mini (biarkan) =====
@@ -523,68 +528,81 @@ $countCert= $counts['sertifikasi'] ?? 0;
 
 
 <div class="card card-lite mb-3">
-  <div class="card-header bg-white d-flex justify-content-between align-items-center">
-    <div><i class="bi bi-patch-check me-2"></i>Sertifikasi</div>
-    
-    <?php if ($is_owner): ?>
-    <div class="d-flex align-items-center">
-      <button class="btn btn-sm btn-outline-secondary toggle-section me-2" 
-              data-target="#sertifikasi-content"
-              data-storage-key="sertifikasi">
-        <i class="bi bi-eye-slash me-1"></i> Sembunyikan
-      </button>
-      <a href="#" class="link-muted small" data-bs-toggle="modal" data-bs-target="#modalSertifikasi" data-mode="add">
-        <i class="bi bi-plus-circle me-1"></i>Tambah
-      </a>
-    </div>
-    <?php endif; ?>
-    </div>
-  <div id="sertifikasi-content" class="profile-section card-body">
-    <?php if (!empty($sertifikasi_profesi)): ?>
-      <?php foreach ($sertifikasi_profesi as $i => $s): ?>
-        <div class="d-flex justify-content-between align-items-start">
-          <div class="pe-3"> 
-            <div class="fw-semibold"><?= h($s['nama'] ?? '—') ?></div>
-            <div class="small muted"><?= h($s['penerbit'] ?? '—') ?> · <?= h($s['tahun'] ?? '—') ?></div>
-          </div>
-          <div class="text-end" style="min-width:120px">
-            
-            <?php if ($is_owner): ?>
-            <div class="btn-actions d-flex justify-content-end gap-2">
-              <button type="button" class="btn-action edit" data-bs-toggle="modal" data-bs-target="#modalSertifikasi"
-                      data-mode="edit"
-                      data-id="<?= (int)$s['id'] ?>"
-                      data-nama="<?= h($s['nama'] ?? '') ?>"
-                      data-penerbit="<?= h($s['penerbit'] ?? '') ?>"
-                      data-tahun="<?= h($s['tahun'] ?? '') ?>"
-                      data-is_visible="<?= (int)($s['is_visible'] ?? 1) ?>">
-                <i class="bi bi-pencil"></i>
-              </button>
-                <form class="m-0" method="post" action="<?= base_url('user/experience_delete/'.(int)$p['id']) ?>"
-                    onsubmit="return confirm('Hapus pengalaman ini?');">
-                <?php if (function_exists('csrf_field')) echo csrf_field(); ?>
-                
-                <button type="submit" class="btn-action danger" title="Hapus">
-                    <i class="bi bi-trash"></i>
-                </button>
-                </form>
-              </form>
-            </div>
-            <?php endif; ?>
-            </div>
-        </div>
-        <?php if ($i < count($sertifikasi_profesi)-1): ?><hr class="item-sep"><?php endif; ?>
-      <?php endforeach; ?>
-      
-    <?php else: ?>
-      <div class="muted">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div><i class="bi bi-patch-check me-2"></i>Sertifikasi</div>
+        
         <?php if ($is_owner): ?>
-          Belum ada data sertifikasi.
-        <?php else: ?>
-          Tidak ada data sertifikasi yang ditampilkan.
+        <div class="d-flex align-items-center">
+            <button class="btn btn-sm btn-outline-secondary toggle-section me-2" 
+                    data-target="#sertifikasi-content"
+                    data-storage-key="sertifikasi">
+                <i class="bi bi-eye-slash me-1"></i> Sembunyikan
+            </button>
+            <a href="#" class="link-muted small" data-bs-toggle="modal" data-bs-target="#modalSertifikasi" data-mode="add">
+                <i class="bi bi-plus-circle me-1"></i>Tambah
+            </a>
+        </div>
         <?php endif; ?>
-      </div>
-    <?php endif; ?>
+    </div>
+
+    <div id="sertifikasi-content" class="profile-section card-body">
+        <?php if (!empty($sertifikasi_profesi)): ?>
+            <?php foreach ($sertifikasi_profesi as $i => $s): ?>
+                
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="pe-3"> 
+                        <div class="fw-semibold"><?= h($s['nama'] ?? '—') ?></div>
+                        <div class="small muted"><?= h($s['penerbit'] ?? '—') ?> · <?= h($s['tahun'] ?? '—') ?></div>
+                        
+                        <?php if (!empty($s['file_sertifikat'])): ?>
+                            <div class="small mt-1">
+                                <a href="<?= base_url('' . h($s['file_sertifikat'])) ?>" target="_blank" class="link-primary">
+                                    <i class="bi bi-file-earmark-arrow-down me-1"></i>Lihat Sertifikat
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php if ($is_owner): ?>
+                    <div class="text-end" style="min-width:120px">
+                        <div class="btn-actions d-flex justify-content-end gap-2">
+                            
+                            <button type="button" class="btn-action edit" data-bs-toggle="modal" data-bs-target="#modalSertifikasi"
+                                    data-mode="edit"
+                                    data-id="<?= (int)$s['id'] ?>"
+                                    data-nama="<?= h($s['nama'] ?? '') ?>"
+                                    data-penerbit="<?= h($s['penerbit'] ?? '') ?>"
+                                    data-tahun="<?= h($s['tahun'] ?? '') ?>"
+                                    data-file_sertifikat="<?= h($s['file_sertifikat'] ?? '') ?>" data-is_visible="<?= (int)($s['is_visible'] ?? 1) ?>">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            
+                            <form class="m-0" method="post" action="<?= base_url('user/sertifikasi_delete/'.(int)$s['id']) ?>"
+                                  onsubmit="return confirm('Hapus sertifikasi ini?');">
+                                <?php if (function_exists('csrf_field')) echo csrf_field(); ?>
+                                
+                                <button type="submit" class="btn-action danger" title="Hapus">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                </div>
+
+                <?php if ($i < count($sertifikasi_profesi)-1): ?><hr class="item-sep"><?php endif; ?>
+            <?php endforeach; ?>
+            
+        <?php else: ?>
+            <div class="muted">
+                <?php if ($is_owner): ?>
+                    Belum ada data sertifikasi.
+                <?php else: ?>
+                    Tidak ada data sertifikasi yang ditampilkan.
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -625,7 +643,7 @@ $is_pelatihan_visible = (int)($visibility_map[$key_pelatihan] ?? 1);
             <div class="small muted"><?= h($p['penyelenggara'] ?? '—') ?> · <?= h($p['tahun'] ?? '—') ?></div>
             <?php if (!empty($p['sertifikat_file'])): ?>
                 <div class="small mt-1">
-                    <a href="<?= base_url('uploads/sertifikat/' . h($p['sertifikat_file'])) ?>" target="_blank" class="link-primary">
+                    <a href="<?= base_url('' . h($p['sertifikat_file'])) ?>" target="_blank" class="link-primary">
                         <i class="bi bi-file-earmark-arrow-down me-1"></i>Lihat Sertifikat
                     </a>
                 </div>
@@ -687,7 +705,8 @@ $is_pelatihan_visible = (int)($visibility_map[$key_pelatihan] ?? 1);
       </a>
     </div>
     <?php endif; ?>
-    </div>
+  </div>
+
   <div id="bahasa-content" class="profile-section card-body">
   <?php if (!empty($bahasa_list)): ?>
     <div class="list-group list-group-flush">
@@ -708,20 +727,18 @@ $is_pelatihan_visible = (int)($visibility_map[$key_pelatihan] ?? 1);
                     data-writing="<?= h($b['writing'] ?? '') ?>"
                     data-is_visible="<?= (int)($b['is_visible'] ?? 1) ?>"> <i class="bi bi-pencil"></i>
             </button>
-            <form class="m-0" method="post" action="<?= base_url('user/experience_delete/'.(int)$p['id']) ?>"
-                onsubmit="return confirm('Hapus pengalaman ini?');">
+            <form class="m-0" method="post" action="<?= base_url('user/lang_delete/'.(int)$b['id']) ?>"
+                onsubmit="return confirm('Hapus bahasa ini?');">
             <?php if (function_exists('csrf_field')) echo csrf_field(); ?>
-            
             <button type="submit" class="btn-action danger" title="Hapus">
                 <i class="bi bi-trash"></i>
             </button>
             </form>
           </div>
           <?php endif; ?>
-          </div>
+        </div>
       <?php endforeach; ?>
     </div>
-    
   <?php else: ?>
     <div class="muted">
       <?php if ($is_owner): ?>
@@ -737,96 +754,134 @@ $is_pelatihan_visible = (int)($visibility_map[$key_pelatihan] ?? 1);
 
 <?php
 $key_lampiran = 'lampiran_cv';
-$is_lampiran_visible = (int)($visibility_map[$key_lampiran] ?? 1);
+$is_lampiran_visible = (int)($visibility_map[$key_lampiran] ?? 1); 
+
 $lampiran_items = [
-    'ktp_file'    => 'KTP/Passport/ID',
-    'npwp_file'   => 'NPWP',
-    'bukti_pajak' => 'Bukti Pajak',
-    'foto'        => 'Foto Formal',
-    'lainnya'     => 'Lampiran Lainnya'
+    'ktp_file'      => 'KTP/Passport/ID',
+    'npwp_file'     => 'NPWP',
+    'bukti_pajak'   => 'Bukti Pajak',
+    'foto'          => 'Foto Formal',
+    'lainnya'       => 'Lampiran Lainnya'
 ];
+// Pastikan menggunakan $lampiran dari controller
 $lampiran_data = $lampiran ?? []; 
+
+// Helper: Cek apakah ada item yang akan ditampilkan
+$has_visible_items = false;
+
+if ($is_owner) {
+    $has_visible_items = true; // Owner selalu bisa lihat (untuk mode edit)
+} else {
+    // PERUBAHAN 1: Cek dulu apakah SECTION utama di-hide?
+    if ($is_lampiran_visible) { 
+        // Jika Section TAMPIL, baru cek per item
+        foreach ($lampiran_items as $field_name => $label) {
+            $file_exists = !empty($lampiran_data[$field_name] ?? null);
+            $is_visible_item = (int)($lampiran_data['is_visible_' . $field_name] ?? 1);
+            
+            // Jika ada setidaknya satu file yg exist DAN visible
+            if ($file_exists && $is_visible_item) {
+                $has_visible_items = true;
+                break;
+            }
+        }
+    } else {
+        // Jika Section DI-HIDE, maka otomatis tidak ada item visible
+        $has_visible_items = false;
+    }
+}
 ?>
 
 <div class="card card-lite mb-3" id="lampiran">
-  <div class="card-header bg-white d-flex justify-content-between align-items-center">
-    <div><i class="bi bi-paperclip me-2"></i>Lampiran CV</div>
-
-    <?php if ($is_owner): ?>
-    <div class="d-flex align-items-center">
-      <button class="btn btn-sm btn-outline-secondary toggle-section me-2" 
-              data-target="#lampiran-content"
-              data-storage-key="<?= $key_lampiran ?>"
-              data-visible-state="<?= $is_lampiran_visible ?>">
-        <?php if ($is_lampiran_visible): ?>
-          <i class="bi bi-eye-slash me-1"></i> Sembunyikan
-        <?php else: ?>
-          <i class="bi bi-eye me-1"></i> Tampilkan
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div><i class="bi bi-paperclip me-2"></i>Lampiran CV</div>
+        <?php if ($is_owner): ?> 
+            <div class="d-flex align-items-center">
+                <button class="btn btn-sm btn-outline-secondary toggle-section me-2" 
+                        data-target="#lampiran-content"
+                        data-storage-key="<?= $key_lampiran ?>"
+                        data-visible-state="<?= $is_lampiran_visible ?>">
+                    <?php if ($is_lampiran_visible): ?>
+                        <i class="bi bi-eye-slash me-1"></i> Sembunyikan
+                    <?php else: ?>
+                        <i class="bi bi-eye me-1"></i> Tampilkan
+                    <?php endif; ?>
+                </button>
+            </div>
         <?php endif; ?>
-      </button>
     </div>
-    <?php endif; // Akhir dari check 'is_owner' ?>
+    
+    <div id="lampiran-content" class="profile-section card-body <?= ($is_owner && !$is_lampiran_visible) ? 'd-none' : '' ?>"> 
+        
+        <?php if ($has_visible_items): ?>
+            <div class="list-group list-group-flush">
+                <?php foreach ($lampiran_items as $field_name => $label): ?>
+                    <?php
+                      $file_value = $lampiran_data[$field_name] ?? null;
+                      $file_exists = !empty($file_value);
+                      $file_url = $file_exists ? base_url('' . $file_value) : '#'; 
 
-  </div>
-  <div id="lampiran-content" class="profile-section card-body">
-    <div class="list-group list-group-flush">
-      
-      <?php if (!empty($lampiran_data)): ?>
+                      $visible_key = 'is_visible_' . $field_name;
+                      $is_visible = (int)($lampiran_data[$visible_key] ?? 1); 
+                    ?>
+                    
+                    <?php 
+                    // Filter Pengunjung
+                    if (!$is_owner && !$file_exists) continue; 
+                    if (!$is_owner && !$is_visible) continue; 
+                    ?>
 
-        <?php foreach ($lampiran_items as $field_name => $label): ?>
-          <?php
-            $file_value = $lampiran_data[$field_name] ?? null;
-            $file_exists = !empty($file_value);
-            $file_url = $file_exists ? base_url('uploads/cv/' . $file_value) : '#'; 
-          ?>
-          <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-            <div class="item-content"> 
-              <div class="fw-semibold"><?= h($label) ?></div>
-              <?php if ($file_exists): ?>
-                <div class="small text-muted">
-                  <a href="<?= h($file_url) ?>" target="_blank" class="link-primary" style="word-break: break-all;">
-                    <i class="bi bi-file-earmark-arrow-down me-1"></i><?= h($file_value) ?>
-                  </a>
-                </div>
-              <?php else: ?>
-                <div class="small text-muted">Belum di-upload</div>
-              <?php endif; ?>
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div class="item-content">
+                            <div class="fw-semibold"><?= h($label) ?></div>
+                            <?php if ($file_exists): ?>
+                                <div class="small text-muted">
+                                    <a href="<?= h($file_url) ?>" target="_blank" class="link-primary" style="word-break: break-all;">
+                                        <i class="bi bi-file-earmark-arrow-down me-1"></i>Lihat File
+                                    </a>
+                                </div>
+                            <?php else: ?>
+                                <div class="small text-muted">Belum di-upload</div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <?php if ($is_owner): ?> 
+                            <div class="btn-actions">
+                                <button type="button" class="btn-action edit" data-bs-toggle="modal" data-bs-target="#modalLampiranItem"
+                                    title="<?= $file_exists ? 'Ganti' : 'Upload' ?>"
+                                    data-field_name="<?= h($field_name) ?>"
+                                    data-label="<?= h($label) ?>"
+                                    data-file_value="<?= h($file_value ?? '') ?>"
+                                    data-is_visible="<?= $is_visible ?>">
+                                    <i class="bi bi-upload"></i>
+                                </button>
+
+                                <?php if ($file_exists): ?>
+                                    <form class="m-0" method="post" action="<?= base_url('user/lampiran_item_delete/' . h($field_name)) ?>"
+                                        onsubmit="return confirm('Hapus file <?= h($label) ?> ini?');">
+                                        <?php if (function_exists('csrf_field')) echo csrf_field(); ?>
+                                        <button type="submit" class="btn-action danger" title="Hapus">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
             </div>
-            
-            <?php if ($is_owner): ?>
-            <div class="btn-actions">
-              <button type="button" class="btn-action edit" data-bs-toggle="modal" data-bs-target="#modalLampiranItem"
-                      title="<?= $file_exists ? 'Ganti' : 'Upload' ?>"
-                      data-field_name="<?= h($field_name) ?>"
-                      data-label="<?= h($label) ?>"
-                      data-file_value="<?= h($file_value ?? '') ?>">
-                <i class="bi bi-upload"></i>
-              </button>
-              <?php if ($file_exists): ?>
-                <form class="m-0" method="post" action="<?= base_url('user/lampiran_item_delete/' . h($field_name)) ?>"
-                      onsubmit="return confirm('Hapus file <?= h($label) ?> ini?');">
-                  <?php if (function_exists('csrf_field')) echo csrf_field(); ?>
-                  <button type="submit" class="btn-action danger" title="Hapus">
-                      <i class="bi bi-trash"></i>
-                  </button>
-                </form>
-              <?php endif; ?>
+        <?php else: ?>
+            <div class="muted">
+                <?php if ($is_owner): ?>
+                    Belum ada lampiran.
+                <?php else: ?>
+                    Tidak ada lampiran yang ditampilkan.
+                <?php endif; ?>
             </div>
-            <?php endif; // Akhir dari check 'is_owner' ?>
-            
-          </div>
-        <?php endforeach; ?>
-
-      <?php else: ?>
-        <div class="muted">
-            Tidak ada data lampiran yang ditampilkan.
-        </div>
-      <?php endif; ?>
+        <?php endif; ?>
 
     </div>
-  </div>
 </div>
-
 
 <?php if ($is_owner): ?>
 
